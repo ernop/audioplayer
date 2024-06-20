@@ -7,7 +7,7 @@ let globalPlaybackSpeed = parseFloat(localStorage.getItem(globalPlaybackSpeedKey
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
-    const audioSrc = urlParams.get('audio');
+    const audioSrc = urlParams.get('audioSrc');
 
     if (audioSrc) {
         const id = `audioPlayer_${audioSrc.substring(audioSrc.lastIndexOf('/') + 1)}`;
@@ -25,87 +25,62 @@ document.addEventListener('DOMContentLoaded', (event) => {
         let bookmarks = JSON.parse(localStorage.getItem(`${id}_bookmarks`)) || [];
         container.history = history;
 
-        container.innerHTML = `
-            <div class="minimized" style="display: ${hasPlayed && !hasFinished && !isMinimized ? 'none' : 'block'};">
-                <span class="minimized-title" onclick="maximizePlayer('${id}')">&#x1F3B5; Ernie's Custom Player &#9658;</span>
-            </div>
-            <div class="maximized" style="display: ${hasPlayed && !hasFinished && !isMinimized ? 'block' : 'none'};">
-                <audio controls id="theId">
-                    <source src="${audioSrc}" type="audio/mpeg">
-                    Your browser does not support the audio element.
-                </audio>
-                <br>
-                <button onclick="seek('${id}', -10, '<< 10s')" title="Rewind 10 seconds"><< 10s</button>
-                <button onclick="seek('${id}', 10, '10s >>')" title="Forward 10 seconds">10s >></button>
-                <button onclick="seek('${id}', -60, '<< 1m')" title="Rewind 1 minute"><< 1m</button>
-                <button onclick="seek('${id}', 60, '1m >>')" title="Forward 1 minute">1m >></button>
-                <button onclick="restartAudio('${id}')" title="Restart">Restart</button>
-                <br>
-                <button onclick="seekHalf('${id}', 'backward')" title="Rewind halfway">Half Backward</button>
-                <button onclick="seekHalf('${id}', 'forward')" title="Forward halfway">Half Forward</button>
-                <button onclick="minimizePlayer('${id}')" title="Minimize">Minimize</button>
-                <button onclick="togglePlayPause('${id}')" title="Toggle Play/Pause">Play/Pause</button>
-                <button onclick="toggleMute('${id}')" title="Mute/Unmute">Mute/Unmute</button>
-                <input type="range" min="0" max="1" step="0.01" value="${savedVolume}" onchange="setVolume('${id}', this.value)" title="Volume Control">
-                <div class="playback-speed">
-                    Speed: <span id="${id}_playbackSpeed">${globalPlaybackSpeed.toFixed(2)}x</span>
-                    <button onclick="changePlaybackSpeed('${id}', -0.05)">-0.05x</button>
-                    <button onclick="changePlaybackSpeed('${id}', 0.05)">+0.05x</button>
-                </div>
-                <div class="bookmarks">
-                    <button onclick="addBookmark('${id}')">Add Bookmark</button>
-                    <ul id="${id}_bookmarksList"></ul>
-                </div>
-                <div class="logContainer">
-                    <div class="log" id="theLog"></div>
-                </div>
-            </div>
-        `;
+        fetch('audioPlayer.html')
+            .then(response => response.text())
+            .then(html => {
+                html = html.replace(/{{id}}/g, id)
+                           .replace(/{{audioSrc}}/g, audioSrc)
+                           .replace(/{{savedVolume}}/g, savedVolume)
+                           .replace(/{{globalPlaybackSpeed}}/g, globalPlaybackSpeed.toFixed(2))
+                           .replace(/{{hasPlayedAndNotFinishedAndNotMinimized}}/g, hasPlayed && !hasFinished && !isMinimized ? 'block' : 'none');
 
+                container.innerHTML = html;
 
-        const audio = getAudio(id);
+                const audio = getAudio(id);
 
-        audio.volume = savedVolume;
-        audio.playbackRate = globalPlaybackSpeed;
-        audio.currentTime = storedTime;
+                audio.volume = savedVolume;
+                audio.playbackRate = globalPlaybackSpeed;
+                audio.currentTime = storedTime;
 
-        setInterval(() => {
-            localStorage.setItem(id, audio.currentTime);
-        }, 1000);
-        audio.volume = 1;
-        audio.playbackRate = globalPlaybackSpeed;
+                setInterval(() => {
+                    localStorage.setItem(id, audio.currentTime);
+                }, 1000);
 
-        audio.addEventListener('play', () => {
-            localStorage.setItem(`${id}_hasPlayed`, 'true');
-            localStorage.setItem(`${id}_isMinimized`, 'false');
-            if (activePlayer && activePlayer !== audio) {
-                activePlayer.pause();
-            }
-            activePlayer = audio;
-            logEntry(log, history, `Started playing at ${formatTime(audio.currentTime)} using play button`, audio.currentTime, id);
-        });
+                audio.addEventListener('play', () => {
+                    localStorage.setItem(`${id}_hasPlayed`, 'true');
+                    localStorage.setItem(`${id}_isMinimized`, 'false');
+                    if (activePlayer && activePlayer !== audio) {
+                        activePlayer.pause();
+                    }
+                    activePlayer = audio;
+                    logEntry(log, history, `Started playing at ${formatTime(audio.currentTime)} using play button`, audio.currentTime, id);
+                });
 
-        audio.addEventListener('pause', () => {
-            logEntry(log, history, `Paused at ${formatTime(audio.currentTime)} using pause button`, audio.currentTime, id);
-        });
+                audio.addEventListener('pause', () => {
+                    logEntry(log, history, `Paused at ${formatTime(audio.currentTime)} using pause button`, audio.currentTime, id);
+                });
 
-        audio.addEventListener('ended', () => {
-            localStorage.setItem(`${id}_hasFinished`, 'true');
-            minimizePlayer(id);
-        });
+                audio.addEventListener('ended', () => {
+                    localStorage.setItem(`${id}_hasFinished`, 'true');
+                    minimizePlayer(id);
+                });
 
-        const log = getLog(id);
-        logEntry(log, history, `Page loaded`, 0, id);
-        logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime, id);
-        renderBookmarks(id, bookmarks);
+                const log = getLog(id);
+                logEntry(log, history, `Page loaded`, 0, id);
+                logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime, id);
+                renderBookmarks(id, bookmarks);
+            })
+            .catch(error => {
+                console.error('Error loading audio player HTML:', error);
+            });
     }
 });
 
-function getAudio(id){
+function getAudio(id) {
     return document.getElementById("theId");
 }
 
-function getLog(id){
+function getLog(id) {
     return document.getElementById("theLog");
 }
 
