@@ -1,0 +1,35 @@
+<!-- audioPlayer.html -->
+<div class="minimized" style="display: {{hasPlayedAndNotFinishedAndNotMinimized}};">
+    <span class="minimized-title" onclick="maximizePlayer('{{id}}')">&#x1F3B5; Ernie's Custom Player &#9658;</span>
+</div>
+<div class="maximized" style="display: {{hasPlayedAndNotFinishedAndNotMinimized}};">
+    <audio controls id="theId">
+        <source src="{{audioSrc}}" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+    <br>
+    <button onclick="seek('{{id}}', -10, '<< 10s')" title="Rewind 10 seconds"><< 10s</button>
+    <button onclick="seek('{{id}}', 10, '10s >>')" title="Forward 10 seconds">10s >></button>
+    <button onclick="seek('{{id}}', -60, '<< 1m')" title="Rewind 1 minute"><< 1m</button>
+    <button onclick="seek('{{id}}', 60, '1m >>')" title="Forward 1 minute">1m >></button>
+    <button onclick="restartAudio('{{id}}')" title="Restart">Restart</button>
+    <br>
+    <button onclick="seekHalf('{{id}}', 'backward')" title="Rewind halfway">Half Backward</button>
+    <button onclick="seekHalf('{{id}}', 'forward')" title="Forward halfway">Half Forward</button>
+    <button onclick="minimizePlayer('{{id}}')" title="Minimize">Minimize</button>
+    <button onclick="togglePlayPause('{{id}}')" title="Toggle Play/Pause">Play/Pause</button>
+    <button onclick="toggleMute('{{id}}')" title="Mute/Unmute">Mute/Unmute</button>
+    <input type="range" min="0" max="1" step="0.01" value="{{savedVolume}}" onchange="setVolume('{{id}}', this.value)" title="Volume Control">
+    <div class="playback-speed">
+        Speed: <span id="{{id}}_playbackSpeed">{{globalPlaybackSpeed}}x</span>
+        <button onclick="changePlaybackSpeed('{{id}}', -0.05)">-0.05x</button>
+        <button onclick="changePlaybackSpeed('{{id}}', 0.05)">+0.05x</button>
+    </div>
+    <div class="bookmarks">
+        <button onclick="addBookmark('{{id}}')">Add Bookmark</button>
+        <ul id="{{id}}_bookmarksList"></ul>
+    </div>
+    <div class="logContainer">
+        <div class="log" id="theLog"></div>
+    </div>
+</div>
