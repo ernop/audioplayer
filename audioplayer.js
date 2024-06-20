@@ -1,202 +1,211 @@
 let activePlayer = null;
-const globalPlaybackSpeedKey = 'globalPlaybackSpeed';
-const defaultPlaybackSpeed = 1.0;
-
-// Retrieve the global playback speed preference
-let globalPlaybackSpeed = parseFloat(localStorage.getItem(globalPlaybackSpeedKey)) || defaultPlaybackSpeed;
+let globalId = "";
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
     const audioSrc = urlParams.get('audioSrc');
+    const id = `audioPlayer_${audioSrc.substring(audioSrc.lastIndexOf('/') + 1)}`;
+    const container = document.getElementById('container');
+    container.id = id;
+    globalId=id;
 
-    if (audioSrc) {
-        const id = `audioPlayer_${audioSrc.substring(audioSrc.lastIndexOf('/') + 1)}`;
-        const container = document.createElement('div');
-        container.id = id;
-        document.body.appendChild(container);
+    document.body.appendChild(container);
 
-        const hasPlayed = localStorage.getItem(`${id}_hasPlayed`) === 'true';
-        const hasFinished = localStorage.getItem(`${id}_hasFinished`) === 'true';
-        const isMinimized = localStorage.getItem(`${id}_isMinimized`) === 'true';
-        const savedVolume = localStorage.getItem(`${id}_volume`) || 1;
-        const storedTime = localStorage.getItem(id) || 0;
+    const hasPlayed = localStorage.getItem(`${globalId}_hasPlayed`) === 'true';
+    const hasFinished = localStorage.getItem(`${globalId}_hasFinished`) === 'true';
+    const savedVolume = localStorage.getItem(`${globalId}_volume`) || 1;
+    const storedTime = localStorage.getItem(`${globalId}_storedTime`) || 0;
+    const playbackRate = parseFloat(localStorage.getItem(`${globalId}_playbackRate`)) || 1;
 
-        let history = [];
-        let bookmarks = JSON.parse(localStorage.getItem(`${id}_bookmarks`)) || [];
-        container.history = history;
+    let history = [];
+    let bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
+    container.history = history;
 
-        fetch('audioPlayer.html')
-            .then(response => response.text())
-            .then(html => {
-                html = html.replace(/{{id}}/g, id)
-                           .replace(/{{audioSrc}}/g, audioSrc)
-                           .replace(/{{savedVolume}}/g, savedVolume)
-                           .replace(/{{globalPlaybackSpeed}}/g, globalPlaybackSpeed.toFixed(2))
-                           .replace(/{{hasPlayedAndNotFinishedAndNotMinimized}}/g, hasPlayed && !hasFinished && !isMinimized ? 'block' : 'none');
 
-                container.innerHTML = html;
+    document.getElementById('playbackRate').textContent = playbackRate.toFixed(2)+'x';
 
-                const audio = getAudio(id);
+    const audio = getAudio();
+    var sourceElement = document.createElement('source');
+    sourceElement.src = audioSrc;
+    sourceElement.type = "audio/mpeg";
+    audio.appendChild(sourceElement);
+    audio.volume = savedVolume;
+    audio.playbackRate = playbackRate;
+    audio.currentTime = storedTime;
+    audio.load();
 
-                audio.volume = savedVolume;
-                audio.playbackRate = globalPlaybackSpeed;
-                audio.currentTime = storedTime;
+    setInterval(() => {
+        localStorage.setItem(`${globalId}_storedTime`, audio.currentTime);
+    }, 1000);
 
-                setInterval(() => {
-                    localStorage.setItem(id, audio.currentTime);
-                }, 1000);
+    audio.addEventListener('play', () => {
+        localStorage.setItem(`${globalId}_hasPlayed`, 'true');
+        if (activePlayer && activePlayer !== audio) {
+            activePlayer.pause();
+        }
+        activePlayer = audio;
+        logEntry(log, history, `Started playing at ${formatTime(audio.currentTime)} using play button`, audio.currentTime);
+    });
 
-                audio.addEventListener('play', () => {
-                    localStorage.setItem(`${id}_hasPlayed`, 'true');
-                    localStorage.setItem(`${id}_isMinimized`, 'false');
-                    if (activePlayer && activePlayer !== audio) {
-                        activePlayer.pause();
-                    }
-                    activePlayer = audio;
-                    logEntry(log, history, `Started playing at ${formatTime(audio.currentTime)} using play button`, audio.currentTime, id);
-                });
+    audio.addEventListener('pause', () => {
+        logEntry(log, history, `Paused at ${formatTime(audio.currentTime)} using pause button`, audio.currentTime);
+    });
 
-                audio.addEventListener('pause', () => {
-                    logEntry(log, history, `Paused at ${formatTime(audio.currentTime)} using pause button`, audio.currentTime, id);
-                });
+    audio.addEventListener('ended', () => {
+        localStorage.setItem(`${globalId}_hasFinished`, 'true');
+    });
 
-                audio.addEventListener('ended', () => {
-                    localStorage.setItem(`${id}_hasFinished`, 'true');
-                    minimizePlayer(id);
-                });
+    const log = getLog();
+    logEntry(log, history, `Page loaded`, 0);
+    logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime);
+    renderBookmarks(bookmarks);
+ });
 
-                const log = getLog(id);
-                logEntry(log, history, `Page loaded`, 0, id);
-                logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime, id);
-                renderBookmarks(id, bookmarks);
-            })
-            .catch(error => {
-                console.error('Error loading audio player HTML:', error);
-            });
-    }
-});
-
-function getAudio(id) {
+function getAudio() {
     return document.getElementById("theId");
 }
 
-function getLog(id) {
+function getLog() {
     return document.getElementById("theLog");
 }
 
-function logEntry(log, history, message, startTime, id, endTime = startTime) {
+function logEntry(log, history, message, startTime, endTime = startTime) {
     const entry = document.createElement('div');
     entry.className = 'logEntry';
     entry.title = `Clicking this will jump to time ${formatTime(startTime)}`;
-    entry.innerHTML = `${message} <span class="undoButton" onclick="undo('${id}', ${history.length})">X</span>`;
+    entry.innerHTML = `${message} <span class="undoButton" onclick="undo('${history.length})">X</span>`;
     log.insertBefore(entry, log.firstChild);
     log.scrollTop = 0;
     history.push({ startTime, endTime });
 }
 
-function seek(id, amount, label) {
-    const audio = getAudio(id);
-    const log = getLog(id);
-    const container = document.getElementById(id);
+function seek(amount, label) {
+    const audio = getAudio(globalId);
+    const log = getLog(globalId);
+    const container = document.getElementById(globalId);
     const history = container.history;
     const startTime = audio.currentTime;
     audio.currentTime = Math.max(0, Math.min(audio.duration, audio.currentTime + amount));
-    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using ${label} button`, startTime, id, audio.currentTime);
+    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using ${label} button`, startTime, audio.currentTime);
 }
 
-function seekHalf(id, direction) {
-    const audio = getAudio(id);
-    const log = getLog(id);
-    const container = document.getElementById(id);
+function seekHalf(direction) {
+    const audio = getAudio();
+    const log = getLog();
+    const container = document.getElementById(globalId);
     const history = container.history;
     const startTime = audio.currentTime;
     audio.currentTime = direction === 'backward' ? Math.max(0, audio.currentTime / 2) : Math.min(audio.duration, audio.currentTime + (audio.duration - audio.currentTime) / 2);
-    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using Half ${direction} button`, startTime, id, audio.currentTime);
+    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using Half ${direction} button`, startTime,  audio.currentTime);
 }
 
-function changePlaybackSpeed(id, delta) {
-    globalPlaybackSpeed = Math.max(0.5, Math.min(2.0, globalPlaybackSpeed + delta));
-    localStorage.setItem(globalPlaybackSpeedKey, globalPlaybackSpeed);
-    document.querySelectorAll('audio').forEach(audio => {
-        audio.playbackRate = globalPlaybackSpeed;
-    });
-    document.querySelectorAll(`[id$="_playbackSpeed"]`).forEach(el => {
-        el.textContent = `${globalPlaybackSpeed.toFixed(2)}x`;
+function changePlaybackRateTo(x){
+    const audio = getAudio();
+    const log = getLog();
+    const container = document.getElementById(globalId);
+    var newPlaybackRate = 1.0;
+    localStorage.setItem(`${globalId}_playbackRate`, newPlaybackRate);
+    audio.playbackRate = newPlaybackRate;
+    document.querySelectorAll(`[id$="playbackRate"]`).forEach(el => {
+        el.textContent = `${newPlaybackRate.toFixed(2)}x`;
     });
 }
 
-function togglePlayPause(id) {
-    const audio = getAudio(id);
+function changePlaybackRate(delta) {
+    const audio = getAudio();
+    const log = getLog();
+    const container = document.getElementById(globalId);
+    var newPlaybackRate = Math.max(0.0, Math.min(5.0, audio.playbackRate + delta));
+    localStorage.setItem(`${globalId}_playbackRate`, newPlaybackRate);
+    audio.playbackRate = newPlaybackRate;
+    document.querySelectorAll(`[id$="playbackRate"]`).forEach(el => {
+        el.textContent = `${newPlaybackRate.toFixed(2)}x`;
+    });
+}
+
+function restartAudio(id) {
+    const audio = getAudio();
+    const log = getLog();
+    const container = document.getElementById(globalId);
+    const history = container.history;
+    const startTime = audio.currentTime;
+    audio.currentTime = 0;
+    audio.play();
+    logEntry(log, history, `Jumped from ${formatTime(startTime)} to 0 using Restart button`, startTime, id, 0);
+}
+
+function togglePlayPause() {
+    const audio = getAudio();
     audio.paused ? audio.play() : audio.pause();
 }
 
-function toggleMute(id) {
-    const audio = getAudio(id);
+function toggleMute() {
+    const audio = getAudio();
     audio.muted = !audio.muted;
 }
 
-function setVolume(id, volume) {
-    const audio = getAudio(id);
+function setVolume(volume) {
+    const audio = getAudio();
     audio.volume = volume;
-    localStorage.setItem(`${id}_volume`, volume);
+    localStorage.setItem(`${globalId}_volume`, volume);
 }
 
-function addBookmark(id) {
-    const audio = getAudio(id);
-    const bookmarksList = document.getElementById(`${id}_bookmarksList`);
-    let bookmarks = JSON.parse(localStorage.getItem(`${id}_bookmarks`)) || [];
+function addBookmark() {
+    const audio = getAudio();
+    const bookmarksList = document.getElementById(`bookmarksList`);
+    let bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
 
     const currentTime = audio.currentTime;
     const bookmark = { time: currentTime, label: `Bookmark at ${formatTime(currentTime)}` };
     bookmarks.push(bookmark);
-    localStorage.setItem(`${id}_bookmarks`, JSON.stringify(bookmarks));
+    localStorage.setItem(`${globalId}_bookmarks`, JSON.stringify(bookmarks));
 
-    renderBookmarks(id, bookmarks);
+    renderBookmarks( bookmarks);
 }
 
-function renderBookmarks(id, bookmarks) {
-    const bookmarksList = document.getElementById(`${id}_bookmarksList`);
+function renderBookmarks(bookmarks) {
+    const bookmarksList = document.getElementById(`bookmarksList`);
     bookmarksList.innerHTML = '';
     bookmarks.forEach((bookmark, index) => {
         const li = document.createElement('li');
-        li.innerHTML = `${bookmark.label} <button onclick="jumpToBookmark('${id}', ${bookmark.time})">Jump</button> <button onclick="deleteBookmark('${id}', ${index})">Delete</button>`;
+        li.innerHTML = `${bookmark.label} <button onclick="jumpToBookmark(${bookmark.time})">Jump</button> <button onclick="deleteBookmark(${index})">Delete</button>`;
         bookmarksList.appendChild(li);
     });
 }
 
-function jumpToBookmark(id, time) {
-    const audio = getAudio(id);
+function jumpToBookmark(time) {
+    const audio = getAudio();
     audio.currentTime = time;
 }
 
-function deleteBookmark(id, index) {
-    let bookmarks = JSON.parse(localStorage.getItem(`${id}_bookmarks`)) || [];
+function deleteBookmark(index) {
+    let bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
     bookmarks.splice(index, 1);
-    localStorage.setItem(`${id}_bookmarks`, JSON.stringify(bookmarks));
-    renderBookmarks(id, bookmarks);
+    localStorage.setItem(`${globalId}_bookmarks`, JSON.stringify(bookmarks));
+    renderBookmarks(bookmarks);
 }
 
-function undo(id, index) {
-    const container = document.getElementById(id);
-    const audio = getAudio(id);
-    const log = getLog(id);
+function undo(index) {
+    const container = document.getElementById(globalId);
+    const audio = getAudio();
+    const log = getLog();
     const history = container.history;
     if (index >= 0 && index < history.length) {
         const entry = history[index];
         audio.currentTime = entry.startTime;
         container.history = history.slice(0, index);
-        renderLog(log, container.history, id);
+        renderLog(log, container.history);
     }
 }
 
-function renderLog(log, history, id) {
+function renderLog(log, history) {
     log.innerHTML = '';
     history.forEach((entry, index) => {
         const message = `Jumped from ${formatTime(entry.startTime)} to ${formatTime(entry.endTime)}`;
         const logEntry = document.createElement('div');
         logEntry.className = 'logEntry';
         logEntry.title = `Clicking this will jump to time ${formatTime(entry.startTime)}`;
-        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo('${id}', ${index})">X</span>`;
+        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo('{index})">X</span>`;
         log.insertBefore(logEntry, log.firstChild);
     });
 }
@@ -207,28 +216,12 @@ function formatTime(seconds) {
     return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
 }
 
-function playAudio(id) {
-    const audio = getAudio(id);
+function playAudio() {
+    const audio = getAudio();
     audio.play();
 }
 
-function pauseAudio(id) {
-    const audio = getAudio(id);
+function pauseAudio() {
+    const audio = getAudio();
     audio.pause();
-}
-
-function maximizePlayer(id) {
-    const container = document.getElementById(id);
-    container.querySelector('.minimized').style.display = 'none';
-    container.querySelector('.maximized').style.display = 'block';
-    localStorage.setItem(`${id}_isMinimized`, 'false');
-    playAudio(id);
-}
-
-function minimizePlayer(id) {
-    const container = document.getElementById(id);
-    container.querySelector('.minimized').style.display = 'block';
-    container.querySelector('.maximized').style.display = 'none';
-    localStorage.setItem(`${id}_isMinimized`, 'true');
-    pauseAudio(id);
 }

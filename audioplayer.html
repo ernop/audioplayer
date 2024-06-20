@@ -1,35 +1,49 @@
-<!-- audioPlayer.html -->
-<div class="minimized" style="display: {{hasPlayedAndNotFinishedAndNotMaximized}};">
-    <span class="minimized-title" onclick="maximizePlayer('{{id}}')">&#x1F3B5; Ernie's Custom Player &#9658;</span>
-</div>
-<div class="maximized" style="display: {{hasPlayedAndNotFinishedAndNotMinimized}};">
-    <audio controls id="theId">
-        <source src="{{audioSrc}}" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
-    <br>
-    <button onclick="seek('{{id}}', -10, '<< 10s')" title="Rewind 10 seconds"><< 10s</button>
-    <button onclick="seek('{{id}}', 10, '10s >>')" title="Forward 10 seconds">10s >></button>
-    <button onclick="seek('{{id}}', -60, '<< 1m')" title="Rewind 1 minute"><< 1m</button>
-    <button onclick="seek('{{id}}', 60, '1m >>')" title="Forward 1 minute">1m >></button>
-    <button onclick="restartAudio('{{id}}')" title="Restart">Restart</button>
-    <br>
-    <button onclick="seekHalf('{{id}}', 'backward')" title="Rewind halfway">Half Backward</button>
-    <button onclick="seekHalf('{{id}}', 'forward')" title="Forward halfway">Half Forward</button>
-    <button onclick="minimizePlayer('{{id}}')" title="Minimize">Minimize</button>
-    <button onclick="togglePlayPause('{{id}}')" title="Toggle Play/Pause">Play/Pause</button>
-    <button onclick="toggleMute('{{id}}')" title="Mute/Unmute">Mute/Unmute</button>
-    <input type="range" min="0" max="1" step="0.01" value="{{savedVolume}}" onchange="setVolume('{{id}}', this.value)" title="Volume Control">
-    <div class="playback-speed">
-        Speed: <span id="{{id}}_playbackSpeed">{{globalPlaybackSpeed}}x</span>
-        <button onclick="changePlaybackSpeed('{{id}}', -0.05)">-0.05x</button>
-        <button onclick="changePlaybackSpeed('{{id}}', 0.05)">+0.05x</button>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio Player Page</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="audioplayer.js" defer></script>
+</head>
+<body>
+    <div id=container>
+        <h1>Audio Player</h1>
+        <a href="#" class="audioLink">Load Audio</a>
+        <audio id="theId">
+            <source type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+        <br>
+        <button onclick="togglePlayPause()" title="Toggle Play/Pause">Play/Pause</button>
+        <button onclick="seek(-10, '<< 10s')" title="Rewind 10 seconds">&lt;&lt; 10s</button>
+        <button onclick="seek(10, '10s >>')" title="Forward 10 seconds">10s &gt;&gt;</button>
+        <button onclick="seek(-60, '<< 1m')" title="Rewind 1 minute"> &lt;&lt; 1m</button>
+        <button onclick="seek(60, '1m >>')" title="Forward 1 minute">1m &gt;&gt; </button>
+        <button onclick="restartAudio()" title="Restart">Restart</button>
+        <br>
+        <button onclick="seekHalf('backward')" title="Rewind halfway">Half Backward</button>
+        <button onclick="seekHalf('forward')" title="Forward halfway">Half Forward</button>
+
+        <button onclick="toggleMute()" title="Mute/Unmute">Mute/Unmute</button>
+        Volume:
+        <input type="range" min="0" max="1" step="0.01" value="{{savedVolume}}" onchange="setVolume(this.value)" title="Volume Control">
+        <div class="playback-rate">
+            Playback Rate: <span id="playbackRate">x</span>
+            <button onclick="changePlaybackRate(-0.25)">-0.25x</button>
+            <button onclick="changePlaybackRate(-0.05)">-0.05x</button>
+            <button onclick="changePlaybackRateTo(1)">=> 1.0x</button>
+            <button onclick="changePlaybackRate(0.05)">+0.05x</button>
+            <button onclick="changePlaybackRate(0.25)">+0.25x</button>
+        </div>
+        <div class="bookmarks">
+            <button onclick="addBookmark()">Add Bookmark</button>
+            <ul id="bookmarksList"></ul>
+        </div>
+        <div class="logContainer">
+            <div class="log" id="theLog"></div>
+        </div>
     </div>
-    <div class="bookmarks">
-        <button onclick="addBookmark('{{id}}')">Add Bookmark</button>
-        <ul id="{{id}}_bookmarksList"></ul>
-    </div>
-    <div class="logContainer">
-        <div class="log" id="theLog"></div>
-    </div>
-</div>
+</body>
+</html>
