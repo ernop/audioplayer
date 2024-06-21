@@ -1,33 +1,50 @@
- body {
+body {
     display: flex;
     justify-content: space-between;
     padding: 20px;
 }
+
 .controls {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
 }
+
 .progress-container {
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 10px;
 }
+
 .progress-bar {
     width: 20px;
     height: 300px;
     border: 2px solid black;
     position: relative;
 }
+
 .progress {
     width: 100%;
-    height: 50%;
     background-color: blue;
     position: absolute;
     bottom: 0;
 }
+
+.playback-indicator {
+    position: absolute;
+    left: 100%;
+    transform: translateX(-50%);
+    color: green;
+    display: flex;
+    align-items: center;
+}
+
+.playback-indicator span {
+    margin-left: 5px;
+}
+
 .bookmark {
     position: absolute;
     left: 100%;

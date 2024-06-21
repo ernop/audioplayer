@@ -1,5 +1,12 @@
 let activePlayer = null;
 let globalId = "";
+let audioElement = document.getElementById('theId');
+let progressBar = document.querySelector('.progress');
+let playbackIndicator = document.getElementById('playback-indicator');
+let bookmarkContainer = document.getElementById('bookmark-container');
+let currentTimeDisplay = document.getElementById('current-time');
+
+audioElement.addEventListener('timeupdate', updateProgress);
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -7,7 +14,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const id = `audioPlayer_${audioSrc.substring(audioSrc.lastIndexOf('/') + 1)}`;
     const container = document.getElementById('container');
     container.id = id;
-    globalId=id;
+    globalId = id;
 
     document.body.appendChild(container);
 
@@ -21,8 +28,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     let bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
     container.history = history;
 
-
-    document.getElementById('playbackRate').textContent = playbackRate.toFixed(2)+'x';
+    document.getElementById('playbackRate').textContent = playbackRate.toFixed(2) + 'x';
 
     const audio = getAudio();
     var sourceElement = document.createElement('source');
@@ -59,7 +65,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     logEntry(log, history, `Page loaded`, 0);
     logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime);
     renderBookmarks(bookmarks);
- });
+});
 
 function getAudio() {
     return document.getElementById("theId");
@@ -67,6 +73,13 @@ function getAudio() {
 
 function getLog() {
     return document.getElementById("theLog");
+}
+
+function updateProgress() {
+    let percentage = (audioElement.currentTime / audioElement.duration) * 100;
+    progressBar.style.height = percentage + '%';
+    playbackIndicator.style.bottom = percentage + '%';
+    currentTimeDisplay.textContent = formatTime(audioElement.currentTime);
 }
 
 function logEntry(log, history, message, startTime, endTime = startTime) {
@@ -96,7 +109,7 @@ function seekHalf(direction) {
     const history = container.history;
     const startTime = audio.currentTime;
     audio.currentTime = direction === 'backward' ? Math.max(0, audio.currentTime / 2) : Math.min(audio.duration, audio.currentTime + (audio.duration - audio.currentTime) / 2);
-    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using Half ${direction} button`, startTime,  audio.currentTime);
+    logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using Half ${direction} button`, startTime, audio.currentTime);
 }
 
 function changePlaybackRateTo(x){
@@ -160,7 +173,7 @@ function addBookmark() {
     bookmarks.push(bookmark);
     localStorage.setItem(`${globalId}_bookmarks`, JSON.stringify(bookmarks));
 
-    renderBookmarks( bookmarks);
+    renderBookmarks(bookmarks);
 }
 
 function renderBookmarks(bookmarks) {
