@@ -2,14 +2,6 @@
 
 let activePlayer = null;
 let globalId = "";
-let audioElement = document.getElementById('theId');
-let playbackIndicator = document.getElementById('playbackIndicator');
-let bookmarkContainer = document.getElementById('bookmarkContainer');
-let progressBar = document.getElementById('progressBar');
-let currentTimeDisplay = document.getElementById('currentTime');
-let progress = document.querySelector('.progress');
-
-audioElement.addEventListener('timeupdate', updateProgress);
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -34,6 +26,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('playbackRate').textContent = playbackRate.toFixed(2) + 'x';
 
     const audio = getAudio();
+    const playbackIndicator = document.getElementById('playbackIndicator');
+    const bookmarkContainer = document.getElementById('bookmarkContainer');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const progress = document.querySelector('.progress');
+
     audio.addEventListener('loadedmetadata', () => {
         document.getElementById('duration').textContent = formatTime(audio.duration);
         createTimeHatches(audio.duration);
@@ -87,7 +85,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         endTimeDisplay.textContent = formatTime(audio.duration);
     });
 
-    // Ensure all elements are available
     // Add this line to ensure the addBookmark button is available
     document.getElementById('addBookmark').addEventListener('click', addBookmark);
 });
@@ -207,7 +204,8 @@ function toggleMute() {
 }
 
 function addBookmark() {
-    const currentTime = audioElement.currentTime;
+    const audio = getAudio();
+    const currentTime = audio.currentTime;
     const bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
     bookmarks.push({ time: currentTime });
     localStorage.setItem(`${globalId}_bookmarks`, JSON.stringify(bookmarks));
