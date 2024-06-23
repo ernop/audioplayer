@@ -198,7 +198,7 @@ function setVolume(volume) {
 
 function toggleMute() {
     const audio = getAudio();
-    const muteBtn = document.querySelector('button[title="Mute/Unmute"]');
+    const muteBtn = document.getElementById('muteBtn');
     audio.muted = !audio.muted;
     muteBtn.textContent = audio.muted ? 'Unmute' : 'Mute';
 }
