@@ -1,3 +1,5 @@
+//always use camelCase for identifiers, both in JS and in CSS and HTML.  Example: playbackIndicator.
+
 let activePlayer = null;
 let globalId = "";
 let audioElement = document.getElementById('theId');
@@ -86,13 +88,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     });
 
     // Ensure all elements are available
-    let audioElement = document.getElementById('theId');
-    let playbackIndicator = document.getElementById('playbackIndicator');
-    let bookmarkContainer = document.getElementById('bookmarkContainer');
-    let progressBar = document.getElementById('progressBar');
-    let currentTimeDisplay = document.getElementById('currentTime');
-    let progress = document.querySelector('.progress');
-
+    // Add this line to ensure the addBookmark button is available
     document.getElementById('addBookmark').addEventListener('click', addBookmark);
 });
 
