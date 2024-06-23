@@ -13,7 +13,7 @@
     <div id="container">
         <audio id="theId"></audio>
 
-        <div class="main-controls">
+        <div class="mainControls">
             <button id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">Play</button>
             <button onclick="seek(-10)" title="Rewind 10 seconds">-10s</button>
             <button onclick="seek(10)" title="Forward 10 seconds">+10s</button>
@@ -26,11 +26,11 @@
             <span id="volumeDisplay">100%</span>
         </div>
         <button onclick="addBookmark()">Add Bookmark</button>
-        <div class="time-display">
+        <div class="timeDisplay">
             <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
         </div>
 
-        <div class="secondary-controls">
+        <div class="secondaryControls">
             <button onclick="seek(-60)" title="Rewind 1 minute">-1m</button>
             <button onclick="seek(60)" title="Forward 1 minute">+1m</button>
             <button onclick="restartAudio()" title="Restart">Restart</button>
@@ -51,19 +51,20 @@
             <button onclick="addBookmark()">Add Bookmark</button>
         </div>
 
-        <div class="progress-container">
-            <div class="progress-bar-container">
+        <div class="progressContainer">
+            <div class="progressBarContainer">
                 <div id="progressBar">
                     <div class="progress" id="progress"></div>
-                    <div class="playback-indicator" id="playback-indicator">&#9654; <span id="current-time">0:00</span></div>
-                    <div id="time-hatches"></div>
+                    <div class="playbackIndicator" id="playbackIndicator">&#9654; <span id="currentTime">0:00</span>
+                    </div>
+                    <div id="hatchContainer"></div>
                 </div>
-                <div class="time-labels">
-                    <span id="start-time">0:00</span>
-                    <span id="end-time">0:00</span>
+                <div class="timeLabels">
+                    <span id="startTime">0:00</span>
+                    <span id="endTime">0:00</span>
                 </div>
             </div>
-            <ul id="bookmarksList" class="bookmarks-list"></ul>
+            <ul id="bookmarkContainer" class="bookmarksList"></ul>
         </div>
         <div class="logContainer">
             <div class="log" id="theLog"></div>

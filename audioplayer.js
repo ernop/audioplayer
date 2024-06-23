@@ -1,10 +1,11 @@
 let activePlayer = null;
 let globalId = "";
 let audioElement = document.getElementById('theId');
-let progressBar = document.querySelector('.progress');
-let playbackIndicator = document.getElementById('playback-indicator');
-let bookmarkContainer = document.getElementById('bookmark-container');
-let currentTimeDisplay = document.getElementById('current-time');
+let playbackIndicator = document.getElementById('playbackIndicator');
+let bookmarkContainer = document.getElementById('bookmarkContainer');
+let progressBar = document.getElementById('progressBar');
+let currentTimeDisplay = document.getElementById('currentTime');
+let progress = document.querySelector('.progress');
 
 audioElement.addEventListener('timeupdate', updateProgress);
 
@@ -71,10 +72,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     renderBookmarks(bookmarks);
 
     // Update the playback indicator position
-    const playbackIndicator = document.getElementById('playback-indicator');
-    const progressBar = document.getElementById('progressBar');
-    const currentTimeDisplay = document.getElementById('current-time');
-    const endTimeDisplay = document.getElementById('end-time');
     audio.addEventListener('timeupdate', () => {
         const progressHeight = progressBar.clientHeight;
         const currentTime = audio.currentTime;
@@ -87,6 +84,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
     audio.addEventListener('loadedmetadata', () => {
         endTimeDisplay.textContent = formatTime(audio.duration);
     });
+
+    // Ensure all elements are available
+    let audioElement = document.getElementById('theId');
+    let playbackIndicator = document.getElementById('playbackIndicator');
+    let bookmarkContainer = document.getElementById('bookmarkContainer');
+    let progressBar = document.getElementById('progressBar');
+    let currentTimeDisplay = document.getElementById('currentTime');
+    let progress = document.querySelector('.progress');
+
+    document.getElementById('addBookmark').addEventListener('click', addBookmark);
 });
 
 function getAudio() {
@@ -102,7 +109,7 @@ function updateProgress() {
     const progressBar = document.getElementById('progressBar');
     const currentTimeDisplay = document.getElementById('currentTime');
     const durationDisplay = document.getElementById('duration');
-    const playbackIndicator = document.getElementById('playback-indicator');
+    const playbackIndicator = document.getElementById('playbackIndicator');
 
     const progress = (audio.currentTime / audio.duration) * 100;
     progressBar.value = progress;
@@ -123,7 +130,7 @@ function logEntry(log, history, message, startTime, endTime = startTime) {
     const entry = document.createElement('div');
     entry.className = 'logEntry';
     entry.title = `Clicking this will jump to time ${formatTime(startTime)}`;
-    entry.innerHTML = `${message} <span class="undoButton" onclick="undo('${history.length})">X</span>`;
+    entry.innerHTML = `${message} <span class="undoButton" onclick="undo(${history.length})">X</span>`;
     log.insertBefore(entry, log.firstChild);
     log.scrollTop = 0;
     history.push({ startTime, endTime });
@@ -189,7 +196,6 @@ function togglePlayPause() {
     }
 }
 
-
 function setVolume(volume) {
     const audio = getAudio();
     audio.volume = volume;
@@ -205,29 +211,24 @@ function toggleMute() {
 }
 
 function addBookmark() {
-    const audio = getAudio();
-    const bookmarksList = document.getElementById(`bookmarksList`);
-    let bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
-
-    const currentTime = audio.currentTime;
-    const bookmark = { time: currentTime, label: `Bookmark at ${formatTime(currentTime)}` };
-    bookmarks.push(bookmark);
+    const currentTime = audioElement.currentTime;
+    const bookmarks = JSON.parse(localStorage.getItem(`${globalId}_bookmarks`)) || [];
+    bookmarks.push({ time: currentTime });
     localStorage.setItem(`${globalId}_bookmarks`, JSON.stringify(bookmarks));
-
     renderBookmarks(bookmarks);
 }
 
 function renderBookmarks(bookmarks) {
-    const bookmarksList = document.getElementById('bookmarksList');
-    const audio = getAudio();
-    bookmarksList.innerHTML = '';
-
+    bookmarkContainer.innerHTML = '';
     bookmarks.forEach((bookmark, index) => {
-        const li = document.createElement('li');
-        li.className = 'bookmark-item';
-        li.style.top = `${(bookmark.time / audio.duration) * 100}%`;
-        li.innerHTML = `${bookmark.label} <button onclick="jumpToBookmark(${bookmark.time})">Jump</button> <button onclick="deleteBookmark(${index})">Delete</button>`;
-        bookmarksList.appendChild(li);
+        const bookmarkElement = document.createElement('div');
+        bookmarkElement.className = 'bookmark';
+        bookmarkElement.style.top = `${(bookmark.time / audioElement.duration) * 100}%`;
+        bookmarkElement.title = `Bookmark at ${formatTime(bookmark.time)}`;
+        bookmarkElement.addEventListener('click', () => {
+            audioElement.currentTime = bookmark.time;
+        });
+        bookmarkContainer.appendChild(bookmarkElement);
     });
 }
 
@@ -263,36 +264,24 @@ function renderLog(log, history) {
         const logEntry = document.createElement('div');
         logEntry.className = 'logEntry';
         logEntry.title = `Clicking this will jump to time ${formatTime(entry.startTime)}`;
-        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo('${index})">X</span>`;
+        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo(${index})">X</span>`;
         log.insertBefore(logEntry, log.firstChild);
     });
 }
 
 function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
-}
-
-function playAudio() {
-    const audio = getAudio();
-    audio.play();
-}
-
-function pauseAudio() {
-    const audio = getAudio();
-    audio.pause();
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 }
 
 function createTimeHatches(duration) {
-    const timeHatchesContainer = document.getElementById('time-hatches');
-    const progressBarHeight = document.getElementById('progressBar').clientHeight;
-    const totalMinutes = Math.ceil(duration / 60);
-
-    for (let i = 0; i <= totalMinutes; i++) {
+    const hatchContainer = document.getElementById('hatchContainer');
+    hatchContainer.innerHTML = '';
+    for (let i = 0; i <= duration; i += 60) {
         const hatch = document.createElement('div');
-        hatch.className = 'time-hatch';
-        hatch.style.top = `${(i / totalMinutes) * progressBarHeight}px`;
-        timeHatchesContainer.appendChild(hatch);
+        hatch.className = 'hatch';
+        hatch.style.top = `${(i / duration) * 100}%`;
+        hatchContainer.appendChild(hatch);
     }
 }

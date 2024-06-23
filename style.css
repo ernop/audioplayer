@@ -11,17 +11,18 @@ body {
     gap: 10px;
 }
 
-.progress-container {
+.progressContainer {
     display: flex;
     align-items: flex-start;
 }
 
-.progress-bar-container {
+.progressBarContainer {
     position: relative;
 }
 
 #progressBar {
-    width: 20px; /* Adjust width as needed */
+    width: 20px;
+    /* Adjust width as needed */
     height: 500px;
     background-color: #e0e0e0;
     position: relative;
@@ -34,7 +35,7 @@ body {
     top: 0;
 }
 
-.playback-indicator {
+.playbackIndicator {
     position: absolute;
     left: 0;
     width: 100%;
@@ -42,7 +43,7 @@ body {
     transform: translateY(-50%);
 }
 
-.time-labels {
+.timeLabels {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -53,33 +54,36 @@ body {
     justify-content: space-between;
 }
 
-#start-time, #end-time {
+#startTime,
+#endTime {
     font-size: 12px;
 }
 
-#time-hatches {
+#timeHatches {
     position: absolute;
     width: 100%;
     height: 100%;
 }
 
-.time-hatch {
+.timeHatch {
     position: absolute;
     width: 100%;
     height: 1px;
     background-color: black;
 }
 
-.bookmarks-list {
+.bookmarksList {
     list-style: none;
     padding: 0;
     margin: 0;
     position: relative;
-    height: 500px; /* Match the height of the progress bar */
-    margin-left: 10px; /* Space between progress bar and bookmarks list */
+    height: 500px;
+    /* Match the height of the progress bar */
+    margin-left: 10px;
+    /* Space between progress bar and bookmarks list */
 }
 
-.bookmark-item {
+.bookmarkItem {
     position: absolute;
     left: 0;
     white-space: nowrap;
