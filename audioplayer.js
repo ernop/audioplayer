@@ -3,6 +3,14 @@
 let activePlayer = null;
 let globalId = "";
 
+const audio = getAudio();
+const playbackIndicator = document.getElementById('playbackIndicator');
+const bookmarkContainer = document.getElementById('bookmarkContainer');
+const progressBar = document.getElementById('progressBar');
+const currentTimeDisplay = document.getElementById('currentTime');
+const endTimeDisplay = document.getElementById('endTime');
+const progress = document.querySelector('.progress');
+
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
     const audioSrc = urlParams.get('audioSource');
@@ -24,13 +32,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     container.history = history;
 
     document.getElementById('playbackRate').textContent = playbackRate.toFixed(2) + 'x';
-
-    const audio = getAudio();
-    const playbackIndicator = document.getElementById('playbackIndicator');
-    const bookmarkContainer = document.getElementById('bookmarkContainer');
-    const progressBar = document.getElementById('progressBar');
-    const currentTimeDisplay = document.getElementById('currentTime');
-    const progress = document.querySelector('.progress');
 
     audio.addEventListener('loadedmetadata', () => {
         document.getElementById('duration').textContent = formatTime(audio.duration);
@@ -217,7 +218,7 @@ function renderBookmarks(bookmarks) {
     bookmarks.forEach((bookmark, index) => {
         const bookmarkElement = document.createElement('div');
         bookmarkElement.className = 'bookmark';
-        bookmarkElement.style.top = `${(bookmark.time / audioElement.duration) * 100}%`;
+        bookmarkElement.style.top = `${(bookmark.time / audio.duration) * 100}%`;
         bookmarkElement.title = `Bookmark at ${formatTime(bookmark.time)}`;
         bookmarkElement.addEventListener('click', () => {
             audioElement.currentTime = bookmark.time;
