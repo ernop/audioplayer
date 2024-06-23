@@ -10,7 +10,7 @@ audioElement.addEventListener('timeupdate', updateProgress);
 
 document.addEventListener('DOMContentLoaded', (event) => {
     const urlParams = new URLSearchParams(window.location.search);
-    const audioSrc = urlParams.get('audioSrc');
+    const audioSrc = urlParams.get('audioSource');
     const id = `audioPlayer_${audioSrc.substring(audioSrc.lastIndexOf('/') + 1)}`;
     const container = document.getElementById('container');
     container.id = id;
@@ -31,6 +31,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
     document.getElementById('playbackRate').textContent = playbackRate.toFixed(2) + 'x';
 
     const audio = getAudio();
+    audio.addEventListener('loadedmetadata', () => {
+        document.getElementById('duration').textContent = formatTime(audio.duration);
+    });
     var sourceElement = document.createElement('source');
     sourceElement.src = audioSrc;
     sourceElement.type = "audio/mpeg";
@@ -76,10 +79,21 @@ function getLog() {
 }
 
 function updateProgress() {
-    let percentage = (audioElement.currentTime / audioElement.duration) * 100;
-    progressBar.style.height = percentage + '%';
-    playbackIndicator.style.bottom = percentage + '%';
-    currentTimeDisplay.textContent = formatTime(audioElement.currentTime);
+    const audio = getAudio();
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeDisplay = document.getElementById('currentTime');
+    const durationDisplay = document.getElementById('duration');
+
+    progressBar.value = (audio.currentTime / audio.duration) * 100;
+    currentTimeDisplay.textContent = formatTime(audio.currentTime);
+    durationDisplay.textContent = formatTime(audio.duration);
+}
+
+
+function seekToPosition(value) {
+    const audio = getAudio();
+    const seekTime = audio.duration * (value / 100);
+    audio.currentTime = seekTime;
 }
 
 function logEntry(log, history, message, startTime, endTime = startTime) {
@@ -112,28 +126,21 @@ function seekHalf(direction) {
     logEntry(log, history, `Jumped from ${formatTime(startTime)} to ${formatTime(audio.currentTime)} using Half ${direction} button`, startTime, audio.currentTime);
 }
 
-function changePlaybackRateTo(x){
-    const audio = getAudio();
-    const log = getLog();
-    const container = document.getElementById(globalId);
-    var newPlaybackRate = 1.0;
-    localStorage.setItem(`${globalId}_playbackRate`, newPlaybackRate);
-    audio.playbackRate = newPlaybackRate;
-    document.querySelectorAll(`[id$="playbackRate"]`).forEach(el => {
-        el.textContent = `${newPlaybackRate.toFixed(2)}x`;
-    });
-}
-
 function changePlaybackRate(delta) {
     const audio = getAudio();
-    const log = getLog();
-    const container = document.getElementById(globalId);
-    var newPlaybackRate = Math.max(0.0, Math.min(5.0, audio.playbackRate + delta));
-    localStorage.setItem(`${globalId}_playbackRate`, newPlaybackRate);
-    audio.playbackRate = newPlaybackRate;
-    document.querySelectorAll(`[id$="playbackRate"]`).forEach(el => {
-        el.textContent = `${newPlaybackRate.toFixed(2)}x`;
-    });
+    const newPlaybackRate = Math.max(0.25, Math.min(2.0, audio.playbackRate + delta));
+    setPlaybackRate(newPlaybackRate);
+}
+
+function changePlaybackRateTo(rate) {
+    setPlaybackRate(rate);
+}
+
+function setPlaybackRate(rate) {
+    const audio = getAudio();
+    audio.playbackRate = rate;
+    localStorage.setItem(`${globalId}_playbackRate`, rate);
+    document.getElementById('playbackRateDisplay').textContent = `${rate.toFixed(2)}x`;
 }
 
 function restartAudio(id) {
@@ -149,18 +156,29 @@ function restartAudio(id) {
 
 function togglePlayPause() {
     const audio = getAudio();
-    audio.paused ? audio.play() : audio.pause();
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    if (audio.paused) {
+        audio.play();
+        playPauseBtn.textContent = 'Pause';
+    } else {
+        audio.pause();
+        playPauseBtn.textContent = 'Play';
+    }
 }
 
-function toggleMute() {
-    const audio = getAudio();
-    audio.muted = !audio.muted;
-}
 
 function setVolume(volume) {
     const audio = getAudio();
     audio.volume = volume;
     localStorage.setItem(`${globalId}_volume`, volume);
+    document.getElementById('volumeDisplay').textContent = `${Math.round(volume * 100)}%`;
+}
+
+function toggleMute() {
+    const audio = getAudio();
+    const muteBtn = document.querySelector('button[title="Mute/Unmute"]');
+    audio.muted = !audio.muted;
+    muteBtn.textContent = audio.muted ? 'Unmute' : 'Mute';
 }
 
 function addBookmark() {
