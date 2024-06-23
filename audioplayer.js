@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const audio = getAudio();
     audio.addEventListener('loadedmetadata', () => {
         document.getElementById('duration').textContent = formatTime(audio.duration);
+        createTimeHatches(audio.duration);
     });
     var sourceElement = document.createElement('source');
     sourceElement.src = audioSrc;
@@ -68,6 +69,24 @@ document.addEventListener('DOMContentLoaded', (event) => {
     logEntry(log, history, `Page loaded`, 0);
     logEntry(log, history, `User loaded at ${formatTime(storedTime)}`, storedTime);
     renderBookmarks(bookmarks);
+
+    // Update the playback indicator position
+    const playbackIndicator = document.getElementById('playback-indicator');
+    const progressBar = document.getElementById('progressBar');
+    const currentTimeDisplay = document.getElementById('current-time');
+    const endTimeDisplay = document.getElementById('end-time');
+    audio.addEventListener('timeupdate', () => {
+        const progressHeight = progressBar.clientHeight;
+        const currentTime = audio.currentTime;
+        const duration = audio.duration;
+        const progressValue = (currentTime / duration) * progressHeight;
+        playbackIndicator.style.top = `${progressValue}px`;
+        currentTimeDisplay.textContent = formatTime(currentTime);
+        progress.style.height = `${progressValue}px`;
+    });
+    audio.addEventListener('loadedmetadata', () => {
+        endTimeDisplay.textContent = formatTime(audio.duration);
+    });
 });
 
 function getAudio() {
@@ -199,19 +218,16 @@ function addBookmark() {
 }
 
 function renderBookmarks(bookmarks) {
-    const bookmarksList = document.getElementById(`bookmarksList`);
+    const bookmarksList = document.getElementById('bookmarksList');
+    const audio = getAudio();
     bookmarksList.innerHTML = '';
+
     bookmarks.forEach((bookmark, index) => {
         const li = document.createElement('li');
+        li.className = 'bookmark-item';
+        li.style.top = `${(bookmark.time / audio.duration) * 100}%`;
         li.innerHTML = `${bookmark.label} <button onclick="jumpToBookmark(${bookmark.time})">Jump</button> <button onclick="deleteBookmark(${index})">Delete</button>`;
         bookmarksList.appendChild(li);
-
-        // Add bookmark indicator on the progress bar
-        const bookmarkIndicator = document.createElement('div');
-        bookmarkIndicator.className = 'bookmark-indicator';
-        bookmarkIndicator.style.top = `${(bookmark.time / audio.duration) * 100}%`;
-        bookmarkIndicator.title = formatTime(bookmark.time);
-        bookmarkContainer.appendChild(bookmarkIndicator);
     });
 }
 
@@ -266,4 +282,17 @@ function playAudio() {
 function pauseAudio() {
     const audio = getAudio();
     audio.pause();
+}
+
+function createTimeHatches(duration) {
+    const timeHatchesContainer = document.getElementById('time-hatches');
+    const progressBarHeight = document.getElementById('progressBar').clientHeight;
+    const totalMinutes = Math.ceil(duration / 60);
+
+    for (let i = 0; i <= totalMinutes; i++) {
+        const hatch = document.createElement('div');
+        hatch.className = 'time-hatch';
+        hatch.style.top = `${(i / totalMinutes) * progressBarHeight}px`;
+        timeHatchesContainer.appendChild(hatch);
+    }
 }

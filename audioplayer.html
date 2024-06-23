@@ -52,18 +52,19 @@
         </div>
 
         <div class="progress-container">
-            <div id="progressBar">
-                <div class="progress"></div>
-                <div class="playback-indicator" id="playback-indicator">&#9654; <span id="current-time">0:00</span>
+            <div class="progress-bar-container">
+                <div id="progressBar">
+                    <div class="progress" id="progress"></div>
+                    <div class="playback-indicator" id="playback-indicator">&#9654; <span id="current-time">0:00</span></div>
+                    <div id="time-hatches"></div>
+                </div>
+                <div class="time-labels">
+                    <span id="start-time">0:00</span>
+                    <span id="end-time">0:00</span>
                 </div>
             </div>
-            <div class="bookmark-container" id="bookmark-container"></div>
+            <ul id="bookmarksList" class="bookmarks-list"></ul>
         </div>
-
-        <div class="bookmarks">
-            <ul id="bookmarksList"></ul>
-        </div>
-
         <div class="logContainer">
             <div class="log" id="theLog"></div>
         </div>
