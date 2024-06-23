@@ -3,7 +3,6 @@
 let activePlayer = null;
 let globalId = "";
 
-const audio = getAudio();
 const playbackIndicator = document.getElementById('playbackIndicator');
 const bookmarkContainer = document.getElementById('bookmarkContainer');
 const progressBar = document.getElementById('progressBar');
@@ -32,7 +31,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     container.history = history;
 
     document.getElementById('playbackRate').textContent = playbackRate.toFixed(2) + 'x';
-
+    const audio = getAudio();
     audio.addEventListener('loadedmetadata', () => {
         document.getElementById('duration').textContent = formatTime(audio.duration);
         createTimeHatches(audio.duration);
@@ -131,7 +130,7 @@ function logEntry(log, history, message, startTime, endTime = startTime) {
 }
 
 function seek(amount, label) {
-    const audio = getAudio(globalId);
+    const audio = getAudio();
     const log = getLog(globalId);
     const container = document.getElementById(globalId);
     const history = container.history;
@@ -215,6 +214,7 @@ function addBookmark() {
 
 function renderBookmarks(bookmarks) {
     bookmarkContainer.innerHTML = '';
+    const audio = getAudio();
     bookmarks.forEach((bookmark, index) => {
         const bookmarkElement = document.createElement('div');
         bookmarkElement.className = 'bookmark';
