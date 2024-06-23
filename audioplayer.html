@@ -1,80 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Audio Player Page</title>
+    <title>Audio Player 2e</title>
     <link rel="stylesheet" href="style.css">
     <script src="audioplayer.js" defer></script>
 </head>
+
 <body>
     <div id="container">
         <audio id="theId"></audio>
 
         <div class="main-controls">
-    <button id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">Play</button>
-    <button onclick="seek(-10)" title="Rewind 10 seconds">-10s</button>
-    <button onclick="seek(10)" title="Forward 10 seconds">+10s</button>
-    <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" onchange="setVolume(this.value)" title="Volume Control">
-    <span id="volumeDisplay">100%</span>
-</div>
-<div class="time-display">
-    <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
-</div>
-<div class="secondary-controls">
-    <button onclick="seek(-60)" title="Rewind 1 minute">-1m</button>
-    <button onclick="seek(60)" title="Forward 1 minute">+1m</button>
-    <button onclick="restartAudio()" title="Restart">Restart</button>
-    <button onclick="toggleMute()" title="Mute/Unmute">Mute</button>
-</div>
-
-<div class="playback-rate">
-    <button onclick="changePlaybackRate(-0.25)">-0.25x</button>
-    <button onclick="changePlaybackRate(-0.05)">-0.05x</button>
-    <button id="playbackRateDisplay" onclick="changePlaybackRateTo(1)">1.00x</button>
-    <button onclick="changePlaybackRate(0.05)">+0.05x</button>
-    <button onclick="changePlaybackRate(0.25)">+0.25x</button>
-</div>
-
-
-        <button onclick="togglePlayPause()" title="Toggle Play/Pause">Play/Pause</button>
-        <div class="controls">
-            <input type="range" min="0" max="1" step="0.01" value="0.5" onchange="setVolume(this.value)" title="Volume Control">
-            <button onclick="seek(-10)" title="Rewind 10 seconds">&lt;&lt; 10s</button>
-            <button onclick="seek(10)" title="Forward 10 seconds">10s &gt;&gt;</button>
+            <button id="playPauseBtn" onclick="togglePlayPause()" title="Play/Pause">Play</button>
+            <button onclick="seek(-10)" title="Rewind 10 seconds">-10s</button>
+            <button onclick="seek(10)" title="Forward 10 seconds">+10s</button>
             <button onclick="seek(-60)" title="Rewind 1 minute">&lt;&lt; 1m</button>
             <button onclick="seek(60)" title="Forward 1 minute">1m &gt;&gt;</button>
             <button onclick="restartAudio()" title="Restart">Restart</button>
-            <button onclick="seekHalf('backward')" title="Rewind halfway">Half Backward</button>
-            <button onclick="seekHalf('forward')" title="Forward halfway">Half Forward</button>
-            <button onclick="togglePlayPause()" title="Toggle Play/Pause">Play/Pause</button>
             <button onclick="toggleMute()" title="Mute/Unmute">Mute/Unmute</button>
-            <button onclick="addBookmark()">Add Bookmark</button>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="1" onchange="setVolume(this.value)"
+                title="Volume Control">
+            <span id="volumeDisplay">100%</span>
         </div>
-        <div class="progress-container">
-            <div class="progress-bar">
-                <div class="progress"></div>
-                <div class="playback-indicator" id="playback-indicator">&#9654; <span id="current-time">0:00</span></div>
-            </div>
-            <div class="bookmark-container" id="bookmark-container"></div>
+        <button onclick="addBookmark()">Add Bookmark</button>
+        <div class="time-display">
+            <span id="currentTime">0:00</span> / <span id="duration">0:00</span>
         </div>
-        Volume:
-        <input type="range" min="0" max="1" step="0.01" value="1" onchange="setVolume(this.value)" title="Volume Control">
-        <div class="playback-rate">
-            Playback Rate: <span id="playbackRate">x</span>
+
+        <div class="secondary-controls">
+            <button onclick="seek(-60)" title="Rewind 1 minute">-1m</button>
+            <button onclick="seek(60)" title="Forward 1 minute">+1m</button>
+            <button onclick="restartAudio()" title="Restart">Restart</button>
+            <button onclick="toggleMute()" title="Mute/Unmute">Mute</button>
+        </div>
+
+        <div id="playbackRate">
             <button onclick="changePlaybackRate(-0.25)">-0.25x</button>
             <button onclick="changePlaybackRate(-0.05)">-0.05x</button>
-            <button onclick="changePlaybackRateTo(1)">=> 1.0x</button>
+            <button id="playbackRateDisplay" onclick="changePlaybackRateTo(1)">1.00x</button>
             <button onclick="changePlaybackRate(0.05)">+0.05x</button>
             <button onclick="changePlaybackRate(0.25)">+0.25x</button>
         </div>
-        <div class="bookmarks">
+
+        <div class="controls">
+            <button onclick="seekHalf('backward')" title="Rewind halfway">Half Backward</button>
+            <button onclick="seekHalf('forward')" title="Forward halfway">Half Forward</button>
             <button onclick="addBookmark()">Add Bookmark</button>
+        </div>
+
+        <div class="progress-container">
+            <div id="progressBar">
+                <div class="progress"></div>
+                <div class="playback-indicator" id="playback-indicator">&#9654; <span id="current-time">0:00</span>
+                </div>
+            </div>
+            <div class="bookmark-container" id="bookmark-container"></div>
+        </div>
+
+        <div class="bookmarks">
             <ul id="bookmarksList"></ul>
         </div>
+
         <div class="logContainer">
             <div class="log" id="theLog"></div>
         </div>
     </div>
 </body>
+
 </html>

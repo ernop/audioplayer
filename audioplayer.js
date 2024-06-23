@@ -83,12 +83,16 @@ function updateProgress() {
     const progressBar = document.getElementById('progressBar');
     const currentTimeDisplay = document.getElementById('currentTime');
     const durationDisplay = document.getElementById('duration');
+    const playbackIndicator = document.getElementById('playback-indicator');
 
-    progressBar.value = (audio.currentTime / audio.duration) * 100;
+    const progress = (audio.currentTime / audio.duration) * 100;
+    progressBar.value = progress;
     currentTimeDisplay.textContent = formatTime(audio.currentTime);
     durationDisplay.textContent = formatTime(audio.duration);
-}
 
+    // Update the position of the green arrow
+    playbackIndicator.style.top = `${progress}%`;
+}
 
 function seekToPosition(value) {
     const audio = getAudio();
@@ -201,6 +205,13 @@ function renderBookmarks(bookmarks) {
         const li = document.createElement('li');
         li.innerHTML = `${bookmark.label} <button onclick="jumpToBookmark(${bookmark.time})">Jump</button> <button onclick="deleteBookmark(${index})">Delete</button>`;
         bookmarksList.appendChild(li);
+
+        // Add bookmark indicator on the progress bar
+        const bookmarkIndicator = document.createElement('div');
+        bookmarkIndicator.className = 'bookmark-indicator';
+        bookmarkIndicator.style.top = `${(bookmark.time / audio.duration) * 100}%`;
+        bookmarkIndicator.title = formatTime(bookmark.time);
+        bookmarkContainer.appendChild(bookmarkIndicator);
     });
 }
 
@@ -236,7 +247,7 @@ function renderLog(log, history) {
         const logEntry = document.createElement('div');
         logEntry.className = 'logEntry';
         logEntry.title = `Clicking this will jump to time ${formatTime(entry.startTime)}`;
-        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo('{index})">X</span>`;
+        logEntry.innerHTML = `${message} <span class="undoButton" onclick="undo('${index})">X</span>`;
         log.insertBefore(logEntry, log.firstChild);
     });
 }
